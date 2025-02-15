@@ -2,7 +2,7 @@
 
 import { useAuthContext } from "@/context/AuthContext";
 import SignOut from "@/components/sign-out";
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState, useMemo } from "react";
@@ -276,6 +276,12 @@ export default function Page() {
     }
   }, [loading, user, router]);
 
+  useEffect(() => {
+    if(loading) {
+      <p>Loading...</p>;
+    }
+  }, [loading]);
+  
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-2">
       <div className="absolute top-10 right-10 flex items-center space-x-4">
