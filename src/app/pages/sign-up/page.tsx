@@ -11,6 +11,7 @@ const SignUp = () => {
   const [createUserWithEmailAndPassword, user, loading, error] =
     useCreateUserWithEmailAndPassword(auth);
   const router = useRouter();
+  console.log('user: ', user)
   const { user: authUser, loading: authLoading } = useAuthContext();
 
   useEffect(() => {
