@@ -16,20 +16,20 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ChevronUpIcon,
   ChevronDownIcon,
   ChevronsUpDownIcon,
   Pencil,
-  // Save,
-  // X,
+  Save,
+  X,
   Search,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -154,9 +154,6 @@ export default function Page() {
   const [students, setStudents] = useState<Student[]>(initialStudents);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editedStudent, setEditedStudent] = useState<Student | null>(null);
-
-  // Dummy usage of unused variables
-  console.log(editingId, setEditingId, editedStudent, setStudents);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<{
@@ -204,39 +201,39 @@ export default function Page() {
     setEditedStudent({ ...student });
   };
 
-  // const handleSave = () => {
-  //   if (editedStudent) {
-  //     setStudents(
-  //       students.map((s) => (s.id === editedStudent.id ? editedStudent : s))
-  //     );
-  //     setEditingId(null);
-  //     setEditedStudent(null);
-  //   }
-  // };
+  const handleSave = () => {
+    if (editedStudent) {
+      setStudents(
+        students.map((s) => (s.id === editedStudent.id ? editedStudent : s))
+      );
+      setEditingId(null);
+      setEditedStudent(null);
+    }
+  };
 
-  // const handleCancel = () => {
-  //   setEditingId(null);
-  //   setEditedStudent(null);
-  // };
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditedStudent(null);
+  };
 
-  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   if (editedStudent) {
-  //     setEditedStudent({ ...editedStudent, [e.target.name]: e.target.value });
-  //   }
-  // };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (editedStudent) {
+      setEditedStudent({ ...editedStudent, [e.target.name]: e.target.value });
+    }
+  };
 
-  // const handleSelectChange = (value: string, field: string) => {
-  //   if (editedStudent) {
-  //     setEditedStudent({ ...editedStudent, [field]: value });
-  //   }
-  // };
+  const handleSelectChange = (value: string, field: string) => {
+    if (editedStudent) {
+      setEditedStudent({ ...editedStudent, [field]: value });
+    }
+  };
 
-  // const handleGradeChange = (value: number[]) => {
-  //   if (editedStudent) {
-  //     const newGrade = Math.min(Math.max(value[0], 1), 5);
-  //     setEditedStudent({ ...editedStudent, grade: newGrade });
-  //   }
-  // };
+  const handleGradeChange = (value: number[]) => {
+    if (editedStudent) {
+      const newGrade = Math.min(Math.max(value[0], 1), 5);
+      setEditedStudent({ ...editedStudent, grade: newGrade });
+    }
+  };
 
   const handleSort = (field: SortField) => {
     setSortConfig((prevConfig) => ({
@@ -276,178 +273,255 @@ export default function Page() {
     }
   }, [loading, user, router]);
 
-  useEffect(() => {
-    if(loading) {
-      <p>Loading...</p>;
-    }
-  }, [loading]);
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-2">
-      <div className="absolute top-10 right-10 flex items-center space-x-4">
-        <h1 className="text-md sm:text-xl md:text-2xl lg:text-3xl font-bold">
-          Hello, {user?.displayName || "User"}!
-        </h1>
-        <SignOut />
-      </div>
-      <div className="container mx-auto py-10 px-4">
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold">
-              Student Grading System
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <div className="relative w-64">
-                <Input
-                  placeholder="Search students..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-                <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Showing {paginatedStudents.length} of {students.length} students
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg border border-gray-200">
-          <CardContent className="p-4">
-            <div className="overflow-x-auto rounded-lg">
-              <Table className="w-full border-collapse rounded-lg overflow-hidden">
-                <TableHeader>
-                  <TableRow className="bg-gray-800 hover:bg-gray-700">
-                    <TableHead className="w-[50px] text-white">#</TableHead>
-                    <TableHead
-                      className="w-[200px] cursor-pointer text-white"
-                      onClick={() => handleSort("name")}
-                    >
-                      <div className="flex items-center">
-                        Name {renderSortIcon("name")}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="w-[200px] cursor-pointer text-white"
-                      onClick={() => handleSort("course")}
-                    >
-                      <div className="flex items-center">
-                        Course {renderSortIcon("course")}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="w-[100px] cursor-pointer text-white"
-                      onClick={() => handleSort("section")}
-                    >
-                      <div className="flex items-center">
-                        Section {renderSortIcon("section")}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="w-[120px] cursor-pointer text-white"
-                      onClick={() => handleSort("grade")}
-                    >
-                      <div className="flex items-center">
-                        Grade {renderSortIcon("grade")}
-                      </div>
-                    </TableHead>
-                    <TableHead
-                      className="w-[100px] cursor-pointer text-white"
-                      onClick={() => handleSort("status")}
-                    >
-                      <div className="flex items-center">
-                        Status {renderSortIcon("status")}
-                      </div>
-                    </TableHead>
-                    <TableHead className="w-[100px] text-white">
-                      Actions
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedStudents.map((student, index) => (
-                    <TableRow
-                      key={student.id}
-                      className="odd:bg-gray-50 hover:bg-gray-100"
-                    >
-                      <TableCell className="px-4 py-3 font-medium">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        {student.name}
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        {student.course}
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        {student.section}
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getGradeColor(
-                            student.grade
-                          )}`}
-                        >
-                          {student.grade.toFixed(2)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            student.status === "Passed"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {student.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="px-4 py-3 flex gap-2">
-                        <Button
-                          onClick={() => handleEdit(student)}
-                          size="icon"
-                          variant="ghost"
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pagination */}
-        <div className="flex justify-end items-center space-x-2 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <div className="text-sm font-medium">
-            Page {currentPage} of {totalPages}
+      {!user ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <div className="absolute top-10 right-10 flex items-center space-x-4">
+            <h1 className="text-md sm:text-xl md:text-2xl lg:text-3xl font-bold">
+              Hello, {user?.displayName || "User"}!
+            </h1>
+            <SignOut />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+          <div className="container mx-auto py-10 px-4">
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="text-3xl font-bold">
+                  Student Grading System
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center">
+                  <div className="relative w-64">
+                    <Input
+                      placeholder="Search students..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Showing {paginatedStudents.length} of {students.length}{" "}
+                    students
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-primary hover:bg-primary">
+                      <TableHead className="w-[50px] text-primary-foreground">
+                        #
+                      </TableHead>
+                      <TableHead
+                        className="w-[200px] cursor-pointer text-primary-foreground"
+                        onClick={() => handleSort("name")}
+                      >
+                        <div className="flex items-center">
+                          Name {renderSortIcon("name")}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="w-[200px] cursor-pointer text-primary-foreground"
+                        onClick={() => handleSort("course")}
+                      >
+                        <div className="flex items-center">
+                          Course {renderSortIcon("course")}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="w-[100px] cursor-pointer text-primary-foreground"
+                        onClick={() => handleSort("section")}
+                      >
+                        <div className="flex items-center">
+                          Section {renderSortIcon("section")}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="w-[120px] cursor-pointer text-primary-foreground"
+                        onClick={() => handleSort("grade")}
+                      >
+                        <div className="flex items-center">
+                          Grade {renderSortIcon("grade")}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="w-[100px] cursor-pointer text-primary-foreground"
+                        onClick={() => handleSort("status")}
+                      >
+                        <div className="flex items-center">
+                          Status {renderSortIcon("status")}
+                        </div>
+                      </TableHead>
+                      <TableHead className="w-[100px] text-primary-foreground">
+                        Actions
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedStudents.map((student, index) => (
+                      <TableRow
+                        key={student.id}
+                        className={
+                          editingId === student.id ? "bg-muted/50" : ""
+                        }
+                      >
+                        <TableCell className="font-medium">
+                          {(currentPage - 1) * itemsPerPage + index + 1}
+                        </TableCell>
+                        <TableCell>
+                          {editingId === student.id ? (
+                            <Input
+                              name="name"
+                              value={editedStudent?.name}
+                              onChange={handleChange}
+                              className="max-w-[180px]"
+                            />
+                          ) : (
+                            student.name
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingId === student.id ? (
+                            <Input
+                              name="course"
+                              value={editedStudent?.course}
+                              onChange={handleChange}
+                              className="max-w-[150px]"
+                            />
+                          ) : (
+                            student.course
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingId === student.id ? (
+                            <Select
+                              value={editedStudent?.section}
+                              onValueChange={(value) =>
+                                handleSelectChange(value, "section")
+                              }
+                            >
+                              <SelectTrigger className="w-[100px]">
+                                <SelectValue placeholder="Section" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="A">A</SelectItem>
+                                <SelectItem value="B">B</SelectItem>
+                                <SelectItem value="C">C</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            student.section
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingId === student.id ? (
+                            <Input
+                              type="number"
+                              name="grade"
+                              value={editedStudent?.grade.toFixed(2)}
+                              onChange={(e) =>
+                                handleGradeChange([
+                                  Number.parseFloat(e.target.value),
+                                ])
+                              }
+                              min={1}
+                              max={5}
+                              step={0.01}
+                              className="w-[100px]"
+                            />
+                          ) : (
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${getGradeColor(
+                                student.grade
+                              )}`}
+                            >
+                              {student.grade.toFixed(2)}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              student.status === "Passed"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {student.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {editingId === student.id ? (
+                            <div className="flex space-x-2">
+                              <Button
+                                onClick={handleSave}
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                              >
+                                <Save className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                onClick={handleCancel}
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              onClick={() => handleEdit(student)}
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Pagination */}
+            <div className="flex justify-end items-center space-x-2 py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <div className="text-sm font-medium">
+                Page {currentPage} of {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </main>
   );
 }
