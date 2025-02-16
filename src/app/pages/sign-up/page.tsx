@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/AuthContext";
 
 const SignUp = () => {
+  const { user: authUser, loading: authLoading } = useAuthContext();
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [createUserWithEmailAndPassword, user, loading, error] =
+  const [createUserWithEmailAndPassword, , loading, error] =
     useCreateUserWithEmailAndPassword(auth);
-  const router = useRouter();
-  console.log('user: ', user)
-  const { user: authUser, loading: authLoading } = useAuthContext();
 
   useEffect(() => {
     if (!authLoading && authUser) {
@@ -25,10 +25,6 @@ const SignUp = () => {
       const res = await createUserWithEmailAndPassword(email, password);
 
       if (res?.user) {
-        sessionStorage.setItem("user", "true");
-        setEmail("");
-        setPassword("");
-        alert("Account created successfully.");
         router.push("/");
       } else {
         alert(
@@ -41,9 +37,7 @@ const SignUp = () => {
     }
   };
 
-  if (authLoading) {
-    return <p>Loading...</p>;
-  }
+  if (authLoading || authUser) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
