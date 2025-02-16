@@ -11,7 +11,7 @@ import Footer from "@/components/footer";
 import AddSchoolYearButton from "@/components/landing-page/add-school-year-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SchoolYear } from "./types";
-import StudentGradingPage from "@/components/student-table";
+import StudentGradingPage from "@/components/student-grade-page/student-table";
 
 export default function Page() {
   const { user, loading } = useAuthContext();

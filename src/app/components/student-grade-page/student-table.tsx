@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState, useMemo } from "react";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { collection, doc, updateDoc } from "firebase/firestore";
+import { collection, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebaseConfig";
 import {
   Table,
@@ -29,14 +29,17 @@ import {
   Pencil,
   Save,
   X,
+  Trash2,
   Search,
   PlusCircle,
+  Upload,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SchoolYear } from "@/types";
 import { query, where } from "firebase/firestore";
 import NoData from "@/components/landing-page/no-data";
-import AddStudentModal from "@/components/add-new-student";
+import AddStudentModal from "@/components/student-grade-page/add-new-student";
+import ImportExcelModal from "./import-excel-modal";
 
 // Define the structure of a student record
 interface Student {
@@ -45,13 +48,12 @@ interface Student {
   course?: string;
   section?: string;
   grade?: number;
-  status?: string;
   startYear?: number;
   endYear?: number;
   semester?: string;
 }
 
-type SortField = keyof Student;
+type SortField = keyof Student | "status";
 type SortOrder = "asc" | "desc";
 
 type StudentGradingPageProps = {
@@ -62,6 +64,8 @@ export default function StudentGradingPage({
   selectedSchoolYearAndSemester,
 }: StudentGradingPageProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedStudent, setEditedStudent] = useState<Student | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -93,8 +97,17 @@ export default function StudentGradingPage({
     const sortableStudents = [...(students || [])];
     if (sortConfig.field) {
       sortableStudents.sort((a, b) => {
-        const aValue = a[sortConfig.field] ?? "";
-        const bValue = b[sortConfig.field] ?? "";
+        let aValue: string | number;
+        let bValue: string | number;
+
+        if (sortConfig.field === "status") {
+          aValue = getStatus(a.grade ?? 0);
+          bValue = getStatus(b.grade ?? 0);
+        } else {
+          aValue = a[sortConfig.field] ?? "";
+          bValue = b[sortConfig.field] ?? "";
+        }
+
         if (aValue < bValue) {
           return sortConfig.order === "asc" ? -1 : 1;
         }
@@ -123,9 +136,22 @@ export default function StudentGradingPage({
     currentPage * itemsPerPage
   );
 
+  const getStatus = (grade: number) => {
+    return grade <= 3 ? "Passed" : "Failed";
+  };
+
   const handleEdit = (student: Student) => {
     setEditingId(student.id);
     setEditedStudent({ ...student });
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const studentDoc = doc(db, "students", id);
+      await deleteDoc(studentDoc);
+    } catch (error) {
+      console.error("Error deleting document: ", error);
+    }
   };
 
   const handleSave = async () => {
@@ -137,7 +163,6 @@ export default function StudentGradingPage({
           course: editedStudent.course,
           section: editedStudent.section,
           grade: editedStudent.grade,
-          status: editedStudent.status,
           startYear: editedStudent.startYear,
           endYear: editedStudent.endYear,
           semester: editedStudent.semester,
@@ -211,10 +236,26 @@ export default function StudentGradingPage({
   return (
     <div className="container mx-auto py-10 px-4">
       <Card className="mb-8">
-        <CardHeader>
+        <CardHeader className="flex flex-row justify-between items-center">
           <CardTitle className="text-3xl font-bold">
             Student Grading System
           </CardTitle>
+          <div className="flex space-x-2">
+            <Button
+              onClick={() => setIsImportModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 flex items-center space-x-2"
+            >
+              <Upload size={20} className="mr-2" />
+              Import Excel
+            </Button>
+            <Button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 flex items-center space-x-2"
+            >
+              <PlusCircle size={20} />
+              <span>Add Student</span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex justify-between items-center">
@@ -231,13 +272,6 @@ export default function StudentGradingPage({
               Showing {paginatedStudents.length} of {students?.length || 0}{" "}
               students
             </div>
-            <Button
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-300 flex items-center space-x-2"
-            >
-              <PlusCircle size={20} />
-              <span>Add Student</span>
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -254,12 +288,12 @@ export default function StudentGradingPage({
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="bg-primary hover:bg-primary">
-                  <TableHead className="w-[50px] text-primary-foreground">
+                <TableRow className="bg-green-600 hover:bg-green-700 rounded-t-lg">
+                  <TableHead className="w-[50px] text-white first:rounded-tl-lg">
                     #
                   </TableHead>
                   <TableHead
-                    className="w-[200px] cursor-pointer text-primary-foreground"
+                    className="w-[200px] text-white cursor-pointer"
                     onClick={() => handleSort("name")}
                   >
                     <div className="flex items-center">
@@ -267,7 +301,7 @@ export default function StudentGradingPage({
                     </div>
                   </TableHead>
                   <TableHead
-                    className="w-[200px] cursor-pointer text-primary-foreground"
+                    className="w-[200px] text-white cursor-pointer"
                     onClick={() => handleSort("course")}
                   >
                     <div className="flex items-center">
@@ -275,7 +309,7 @@ export default function StudentGradingPage({
                     </div>
                   </TableHead>
                   <TableHead
-                    className="w-[100px] cursor-pointer text-primary-foreground"
+                    className="w-[100px] text-white cursor-pointer"
                     onClick={() => handleSort("section")}
                   >
                     <div className="flex items-center">
@@ -283,7 +317,7 @@ export default function StudentGradingPage({
                     </div>
                   </TableHead>
                   <TableHead
-                    className="w-[120px] cursor-pointer text-primary-foreground"
+                    className="w-[120px] text-white cursor-pointer"
                     onClick={() => handleSort("grade")}
                   >
                     <div className="flex items-center">
@@ -291,18 +325,19 @@ export default function StudentGradingPage({
                     </div>
                   </TableHead>
                   <TableHead
-                    className="w-[100px] cursor-pointer text-primary-foreground"
+                    className="w-[100px] text-white cursor-pointer"
                     onClick={() => handleSort("status")}
                   >
                     <div className="flex items-center">
                       Status {renderSortIcon("status")}
                     </div>
                   </TableHead>
-                  <TableHead className="w-[100px] text-primary-foreground">
+                  <TableHead className="w-[100px] text-white last:rounded-tr-lg">
                     Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {paginatedStudents.map((student, index) => (
                   <TableRow
@@ -386,12 +421,12 @@ export default function StudentGradingPage({
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          student.status === "Passed"
+                          getStatus(student.grade ?? 0) === "Passed"
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {student.status}
+                        {getStatus(student.grade ?? 0)}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -415,14 +450,24 @@ export default function StudentGradingPage({
                           </Button>
                         </div>
                       ) : (
-                        <Button
-                          onClick={() => handleEdit(student)}
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => handleEdit(student)}
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            onClick={() => handleDelete(student.id)}
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
@@ -457,13 +502,18 @@ export default function StudentGradingPage({
           Next
         </Button>
       </div>
-      
+
       <AddStudentModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         startYear={selectedSchoolYearAndSemester.startYear}
         endYear={selectedSchoolYearAndSemester.endYear}
         semester={selectedSchoolYearAndSemester.semester}
+      />
+
+      <ImportExcelModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
       />
     </div>
   );

@@ -13,7 +13,8 @@ import DeleteConfirmationModal from "./delete-confirmation-modal";
 import { SchoolYear } from "@/types";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { collection, doc, updateDoc, deleteDoc } from "firebase/firestore";
-import { db } from "@/firebase/firebaseConfig"; // Ensure correct path to your firebaseConfig
+import { db } from "@/firebase/firebaseConfig";
+import NoData from "@/components/landing-page/no-data";
 
 interface SchoolYearAccordionProps {
   setSelectedSchoolYearAndSemester: (date: SchoolYear | null) => void;
@@ -96,70 +97,74 @@ const SchoolYearAccordion = ({
 
   return (
     <>
-      <Accordion
-        type="multiple"
-        value={openItems}
-        onValueChange={setOpenItems}
-        className="w-full"
-      >
-        {schoolYears.map((year) => (
-          <AccordionItem
-            key={year.id}
-            value={year.id}
-            className="border-b border-gray-200"
-          >
-            <div
-              className="flex items-center justify-between w-full hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
-              onClick={() => toggleAccordion(year.id)}
+      {schoolYears.length === 0 ? (
+        <NoData />
+      ) : (
+        <Accordion
+          type="multiple"
+          value={openItems}
+          onValueChange={setOpenItems}
+          className="w-full"
+        >
+          {schoolYears.map((year) => (
+            <AccordionItem
+              key={year.id}
+              value={year.id}
+              className="border-b border-gray-200"
             >
-              <div className="flex-grow py-4 px-4 flex items-center justify-between">
-                <span className="text-lg font-semibold">
-                  School Year {year.startYear} - {year.endYear}
-                </span>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
-                    openItems.includes(year.id) ? "transform rotate-180" : ""
-                  }`}
-                />
-              </div>
-              <div className="flex space-x-2 pr-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => handleEdit(e, year)}
-                  className="text-green-600 hover:text-green-700 hover:bg-green-100"
-                >
-                  <Edit2 size={16} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => handleDelete(e, year)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-100"
-                >
-                  <Trash2 size={16} />
-                </Button>
-              </div>
-            </div>
-            <AccordionContent>
-              <div className="pl-4 pr-4 py-2">
-                <div
-                  className="cursor-pointer hover:underline text-blue-600 font-medium hover:bg-blue-50 text-lg"
-                  onClick={() => handleSemesterClick(year, "first")}
-                >
-                  First Semester
+              <div
+                className="flex items-center justify-between w-full hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
+                onClick={() => toggleAccordion(year.id)}
+              >
+                <div className="flex-grow py-4 px-4 flex items-center justify-between">
+                  <span className="text-lg font-semibold">
+                    School Year {year.startYear} - {year.endYear}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+                      openItems.includes(year.id) ? "transform rotate-180" : ""
+                    }`}
+                  />
                 </div>
-                <div
-                  className="cursor-pointer hover:underline text-blue-600 font-medium mt-2 hover:bg-blue-50 text-lg"
-                  onClick={() => handleSemesterClick(year, "second")}
-                >
-                  Second Semester
+                <div className="flex space-x-2 pr-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleEdit(e, year)}
+                    className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                  >
+                    <Edit2 size={16} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleDelete(e, year)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-100"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
                 </div>
               </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+              <AccordionContent>
+                <div className="pl-4 pr-4 py-2">
+                  <div
+                    className="cursor-pointer hover:underline text-blue-600 font-medium hover:bg-blue-50 text-lg"
+                    onClick={() => handleSemesterClick(year, "first")}
+                  >
+                    First Semester
+                  </div>
+                  <div
+                    className="cursor-pointer hover:underline text-blue-600 font-medium mt-2 hover:bg-blue-50 text-lg"
+                    onClick={() => handleSemesterClick(year, "second")}
+                  >
+                    Second Semester
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
       {editingYear && (
         <EditSchoolYearModal
           schoolYear={editingYear}
