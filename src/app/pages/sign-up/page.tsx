@@ -37,6 +37,10 @@ const SignUp = () => {
     }
   };
 
+  const handleSignIn = () => {
+    router.push("/pages/sign-in");
+  };
+
   if (authLoading || authUser) return null;
 
   return (
@@ -65,6 +69,12 @@ const SignUp = () => {
           Sign Up
         </button>
         {error && <p className="text-red-500 mt-4">{error.message}</p>}
+        <button
+          onClick={handleSignIn}
+          className="w-full p-3 mt-4 bg-gray-600 rounded text-white hover:bg-gray-500"
+        >
+          Already have an account? Sign In
+        </button>
       </div>
     </div>
   );

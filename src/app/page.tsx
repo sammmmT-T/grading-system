@@ -24,7 +24,7 @@ export default function Page() {
   useEffect(() => {
     // Redirect to sign-in page if not authenticated
     if (!loading && !user) {
-      router.push("pages/sign-in");
+      router.push("/pages/sign-up");
     }
   }, [loading, user, router]);
 
