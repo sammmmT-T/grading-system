@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import {
   Dialog,
@@ -14,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "@/firebase/firebaseConfig"; // Ensure correct path to your firebaseConfig
 
 interface AddSchoolYearModalProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ const AddSchoolYearModal: React.FC<AddSchoolYearModalProps> = ({
   const [endYear, setEndYear] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -42,9 +43,16 @@ const AddSchoolYearModal: React.FC<AddSchoolYearModalProps> = ({
       return;
     }
 
-    // Here you would typically save the new school year
-    console.log("New school year:", `${startYear} - ${endYear}`);
-    onClose();
+    try {
+      await addDoc(collection(db, "SchoolYear"), {
+        startYear: Number.parseInt(startYear),
+        endYear: Number.parseInt(endYear),
+      });
+      onClose();
+    } catch (error) {
+      setError("Failed to add school year. Please try again.");
+      console.error("Error adding document: ", error);
+    }
   };
 
   return (

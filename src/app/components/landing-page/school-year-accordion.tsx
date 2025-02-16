@@ -5,127 +5,156 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, ChevronDown } from "lucide-react";
 import EditSchoolYearModal from "./edit-school-year-modal";
 import DeleteConfirmationModal from "./delete-confirmation-modal";
+import { SchoolYear } from "@/types";
+import { useCollection } from "react-firebase-hooks/firestore";
+import { collection, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { db } from "@/firebase/firebaseConfig"; // Ensure correct path to your firebaseConfig
 
-interface SchoolYear {
-  id: string;
-  startYear: number;
-  endYear: number;
+interface SchoolYearAccordionProps {
+  setSelectedSchoolYearAndSemester: (date: SchoolYear | null) => void;
 }
 
-const SchoolYearAccordion = () => {
-  const currentYear = new Date().getFullYear();
-  const initialSchoolYears: SchoolYear[] = Array.from(
-    { length: 10 },
-    (_, i) => ({
-      id: `${currentYear - i}`,
-      startYear: currentYear - i,
-      endYear: currentYear - i + 1,
-    })
-  );
-
-  const [schoolYears, setSchoolYears] = useState(initialSchoolYears);
+const SchoolYearAccordion = ({
+  setSelectedSchoolYearAndSemester,
+}: SchoolYearAccordionProps) => {
   const [editingYear, setEditingYear] = useState<SchoolYear | null>(null);
   const [deletingYear, setDeletingYear] = useState<SchoolYear | null>(null);
+  const [openItems, setOpenItems] = useState<string[]>([]);
 
-  const handleEdit = (year: SchoolYear) => {
+  // Fetch SchoolYear collection using useCollection hook
+  const [schoolYearsSnapshot, loading, error] = useCollection(
+    collection(db, "SchoolYear")
+  );
+
+  let schoolYears = schoolYearsSnapshot?.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as SchoolYear[];
+
+  // Sort school years in descending order
+  schoolYears = schoolYears?.sort((a, b) => b.startYear - a.startYear);
+
+  const handleEdit = (e: React.MouseEvent, year: SchoolYear) => {
+    e.stopPropagation();
     setEditingYear(year);
   };
 
-  const handleDelete = (year: SchoolYear) => {
+  const handleDelete = (e: React.MouseEvent, year: SchoolYear) => {
+    e.stopPropagation();
     setDeletingYear(year);
   };
 
-  const handleEditConfirm = (editedYear: SchoolYear) => {
-    setSchoolYears((years) =>
-      years.map((year) => (year.id === editedYear.id ? editedYear : year))
-    );
-    setEditingYear(null);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deletingYear) {
-      setSchoolYears((years) =>
-        years.filter((year) => year.id !== deletingYear.id)
-      );
-      setDeletingYear(null);
+  const handleEditConfirm = async (editedYear: SchoolYear) => {
+    try {
+      const yearDoc = doc(db, "SchoolYear", editedYear.id);
+      await updateDoc(yearDoc, {
+        startYear: editedYear.startYear,
+        endYear: editedYear.endYear,
+      });
+      setEditingYear(null);
+      setSelectedSchoolYearAndSemester(null);
+    } catch (error) {
+      console.error("Error updating document: ", error);
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    if (deletingYear) {
+      try {
+        const yearDoc = doc(db, "SchoolYear", deletingYear.id);
+        await deleteDoc(yearDoc);
+        setDeletingYear(null);
+        setSelectedSchoolYearAndSemester(null);
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+      }
+    }
+  };
+
+  const toggleAccordion = (yearId: string) => {
+    setOpenItems((prev) =>
+      prev.includes(yearId)
+        ? prev.filter((id) => id !== yearId)
+        : [...prev, yearId]
+    );
+  };
+
+  const handleSemesterClick = (year: SchoolYear, semester: string) => {
+    setSelectedSchoolYearAndSemester({
+      ...year,
+      semester,
+    });
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
   return (
     <>
-      <Accordion type="single" collapsible className="w-full">
+      <Accordion
+        type="multiple"
+        value={openItems}
+        onValueChange={setOpenItems}
+        className="w-full"
+      >
         {schoolYears.map((year) => (
           <AccordionItem
             key={year.id}
             value={year.id}
             className="border-b border-gray-200"
           >
-            <AccordionTrigger className="w-full hover:bg-blue-50 transition-colors duration-200">
-              <div className="flex items-center justify-between w-full px-4 py-4">
+            <div
+              className="flex items-center justify-between w-full hover:bg-blue-50 transition-colors duration-200 cursor-pointer"
+              onClick={() => toggleAccordion(year.id)}
+            >
+              <div className="flex-grow py-4 px-4 flex items-center justify-between">
                 <span className="text-lg font-semibold">
                   School Year {year.startYear} - {year.endYear}
                 </span>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(year);
-                    }}
-                    className="text-green-600 hover:text-green-700 hover:bg-green-100"
-                  >
-                    <Edit2 size={16} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(year);
-                    }}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-100"
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+                    openItems.includes(year.id) ? "transform rotate-180" : ""
+                  }`}
+                />
               </div>
-            </AccordionTrigger>
+              <div className="flex space-x-2 pr-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => handleEdit(e, year)}
+                  className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                >
+                  <Edit2 size={16} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => handleDelete(e, year)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-100"
+                >
+                  <Trash2 size={16} />
+                </Button>
+              </div>
+            </div>
             <AccordionContent>
               <div className="pl-4 pr-4 py-2">
-                <Accordion type="multiple" className="pl-4">
-                  <AccordionItem value={`${year.id}-first`}>
-                    <AccordionTrigger>First Semester</AccordionTrigger>
-                    <AccordionContent>
-                      <ul className="list-disc pl-6 space-y-2">
-                        <li>Classes begin: August {year.startYear}</li>
-                        <li>Midterm exams: October {year.startYear}</li>
-                        <li>Finals week: December {year.startYear}</li>
-                        <li>
-                          Winter break: December {year.startYear} - January{" "}
-                          {year.endYear}
-                        </li>
-                      </ul>
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value={`${year.id}-second`}>
-                    <AccordionTrigger>Second Semester</AccordionTrigger>
-                    <AccordionContent>
-                      <ul className="list-disc pl-6 space-y-2">
-                        <li>Classes resume: January {year.endYear}</li>
-                        <li>Spring break: March {year.endYear}</li>
-                        <li>Finals week: May {year.endYear}</li>
-                        <li>Commencement: June {year.endYear}</li>
-                      </ul>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                <div
+                  className="cursor-pointer hover:underline text-blue-600 font-medium hover:bg-blue-50 text-lg"
+                  onClick={() => handleSemesterClick(year, "first")}
+                >
+                  First Semester
+                </div>
+                <div
+                  className="cursor-pointer hover:underline text-blue-600 font-medium mt-2 hover:bg-blue-50 text-lg"
+                  onClick={() => handleSemesterClick(year, "second")}
+                >
+                  Second Semester
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>

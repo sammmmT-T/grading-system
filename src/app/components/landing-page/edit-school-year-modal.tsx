@@ -1,56 +1,61 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { AlertCircle } from "lucide-react"
-
-interface SchoolYear {
-  id: string
-  startYear: number
-  endYear: number
-}
+import type React from "react";
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertCircle } from "lucide-react";
+import { SchoolYear } from "@/types";
 
 interface EditSchoolYearModalProps {
-  schoolYear: SchoolYear
-  isOpen: boolean
-  onClose: () => void
-  onConfirm: (editedYear: SchoolYear) => void
+  schoolYear: SchoolYear;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (editedYear: SchoolYear) => void;
 }
 
-const EditSchoolYearModal: React.FC<EditSchoolYearModalProps> = ({ schoolYear, isOpen, onClose, onConfirm }) => {
-  const [startYear, setStartYear] = useState(schoolYear.startYear.toString())
-  const [endYear, setEndYear] = useState(schoolYear.endYear.toString())
-  const [error, setError] = useState("")
+const EditSchoolYearModal: React.FC<EditSchoolYearModalProps> = ({
+  schoolYear,
+  isOpen,
+  onClose,
+  onConfirm,
+}) => {
+  const [startYear, setStartYear] = useState(schoolYear.startYear.toString());
+  const [endYear, setEndYear] = useState(schoolYear.endYear.toString());
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setStartYear(schoolYear.startYear.toString())
-    setEndYear(schoolYear.endYear.toString())
-  }, [schoolYear])
+    setStartYear(schoolYear.startYear.toString());
+    setEndYear(schoolYear.endYear.toString());
+  }, [schoolYear]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
 
-    const start = Number.parseInt(startYear)
-    const end = Number.parseInt(endYear)
+    const start = Number.parseInt(startYear);
+    const end = Number.parseInt(endYear);
 
     if (isNaN(start) || isNaN(end)) {
-      setError("Both years must be valid numbers.")
-      return
+      setError("Both years must be valid numbers.");
+      return;
     }
 
     if (end !== start + 1) {
-      setError("End year must be one year after the start year.")
-      return
+      setError("End year must be one year after the start year.");
+      return;
     }
 
-    onConfirm({ ...schoolYear, startYear: start, endYear: end })
-  }
+    onConfirm({ ...schoolYear, startYear: start, endYear: end });
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -86,15 +91,20 @@ const EditSchoolYearModal: React.FC<EditSchoolYearModalProps> = ({ schoolYear, i
             </div>
           )}
           <DialogFooter>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               Save Changes
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default EditSchoolYearModal
-
+export default EditSchoolYearModal;

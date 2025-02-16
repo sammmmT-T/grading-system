@@ -1,6 +1,20 @@
-import { BookOpen } from "lucide-react"
+import { BookOpen } from "lucide-react";
+import { auth } from "@/firebase/firebaseConfig";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 const Header = () => {
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push("/sign-in");
+    } catch (error) {
+      console.error("Sign-out error", error);
+    }
+  };
+
   return (
     <header className="bg-blue-600 text-white shadow-md">
       <div className="container mx-auto px-4 py-6 flex items-center justify-between">
@@ -25,12 +39,19 @@ const Header = () => {
                 Contact
               </a>
             </li>
+            <li>
+                <button
+                    onClick={handleSignOut}
+                    className="hover:text-blue-200 transition-colors"
+                >
+                    Sign Out
+                </button>
+            </li>
           </ul>
         </nav>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Header
-
+export default Header;
