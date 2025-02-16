@@ -32,7 +32,7 @@ export default function Page() {
 
   return (
     <>
-      <Header />
+      <Header setSelectedSchoolYearAndSemester={setSelectedSchoolYearAndSemester}/>
       <main className="flex min-h-screen flex-col p-2">
         <div className="min-h-screen bg-gray-50 flex flex-col w-full">
           <main className="flex-grow container mx-auto px-4 py-8 w-full">

@@ -2,8 +2,15 @@ import { BookOpen } from "lucide-react";
 import { auth } from "@/firebase/firebaseConfig";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { SchoolYear } from "@/types";
 
-const Header = () => {
+interface HeaderProps {
+  setSelectedSchoolYearAndSemester: (date: SchoolYear | null) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({
+  setSelectedSchoolYearAndSemester,
+}) => {
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -13,6 +20,10 @@ const Header = () => {
     } catch (error) {
       console.error("Sign-out error", error);
     }
+  };
+
+  const handleHomeClick = () => {
+    setSelectedSchoolYearAndSemester(null);
   };
 
   return (
@@ -25,7 +36,11 @@ const Header = () => {
         <nav>
           <ul className="flex space-x-4">
             <li>
-              <a href="#" className="hover:text-blue-200 transition-colors">
+              <a
+                href="#"
+                onClick={handleHomeClick}
+                className="hover:text-blue-200 transition-colors"
+              >
                 Home
               </a>
             </li>
@@ -40,12 +55,12 @@ const Header = () => {
               </a>
             </li>
             <li>
-                <button
-                    onClick={handleSignOut}
-                    className="hover:text-blue-200 transition-colors"
-                >
-                    Sign Out
-                </button>
+              <button
+                onClick={handleSignOut}
+                className="hover:text-blue-200 transition-colors"
+              >
+                Sign Out
+              </button>
             </li>
           </ul>
         </nav>

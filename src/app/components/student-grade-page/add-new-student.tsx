@@ -30,14 +30,13 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
   const [course, setCourse] = useState("");
   const [section, setSection] = useState("");
   const [grade, setGrade] = useState("");
-  const [status, setStatus] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!name || !course || !section || !grade || !status) {
+    if (!name || !course || !section || !grade) {
       setError("All fields are required.");
       return;
     }
@@ -48,7 +47,6 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
         course,
         section,
         grade: parseFloat(grade),
-        status,
         startYear,
         endYear,
         semester,
@@ -90,11 +88,6 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
             min={1}
             max={5}
             step={0.01}
-          />
-          <Input
-            placeholder="Status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
           />
           {error && <div className="text-red-500 text-sm">{error}</div>}
           <DialogFooter>
